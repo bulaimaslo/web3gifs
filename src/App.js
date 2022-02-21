@@ -4,6 +4,7 @@ import { Program, Provider, web3 } from "@project-serum/anchor";
 import twitterLogo from "./assets/twitter-logo.svg";
 import "./App.css";
 import idl from "./idl.json";
+import kp from './keypair.json';
 
 const TWITTER_HANDLE = "_buildspace";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
@@ -15,7 +16,9 @@ const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 // ];
 
 const { SystemProgram, Keypair } = web3;
-let baseAccount = Keypair.generate();
+const arr = Object.values(kp._keypair.secretKey);
+const secret = new Uint8Array(arr);
+const baseAccount = web3.Keypair.fromSecretKey(secret);
 const programID = new PublicKey(idl.metadata.address);
 const network = clusterApiUrl("devnet");
 const opts = {
@@ -60,12 +63,27 @@ const App = () => {
   };
 
   const sendGif = async () => {
-    if (inputValue.length > 0) {
-      console.log("Gif link:", inputValue);
-      setGifList([...gifList, inputValue]);
-      setInputValue("");
-    } else {
-      console.log("Empty input. Try again.");
+    if (inputValue.length === 0) {
+      console.log("No gif link given!");
+      return;
+    }
+    setInputValue("");
+    console.log("Gif link:", inputValue);
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+
+      await program.rpc.addGif(inputValue, {
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+          user: provider.wallet.publicKey,
+        },
+      });
+      console.log("GIF successfully sent to program", inputValue);
+
+      await getGifList();
+    } catch (error) {
+      console.log("Error sending GIF:", error);
     }
   };
 
@@ -73,21 +91,24 @@ const App = () => {
     try {
       const provider = getProvider();
       const program = new Program(idl, programID, provider);
-      console.log("ping")
+      console.log("ping");
       await program.rpc.startStuffOff({
         accounts: {
           baseAccount: baseAccount.publicKey,
           user: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId,
         },
-        signers: [baseAccount]
+        signers: [baseAccount],
       });
-      console.log("Created a new BaseAccount w/ address:", baseAccount.publicKey.toString())
+      console.log(
+        "Created a new BaseAccount w/ address:",
+        baseAccount.publicKey.toString()
+      );
       await getGifList();
-    } catch(error) {
-      console.log("Error creating BaseAccount account:", error)
+    } catch (error) {
+      console.log("Error creating BaseAccount account:", error);
     }
-  }
+  };
 
   const onInputChange = (event) => {
     const { value } = event.target;
