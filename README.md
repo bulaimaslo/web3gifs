@@ -13,7 +13,10 @@ Please keep in mind that to interact with the website **you need a Solana wallet
 Now you should ready to share some gifs of cute cats :relaxed:
 
  <hr />
+ 
  ![](https://github.com/bulaimaslo/web3gifs/blob/main/sample.gif)
+ 
+ 
  <hr />
 
 Inital project template and guidance received from [buildspace](https://buildspace.so) and wonderful people from [buildspace discord](https://discord.com/invite/vPmqZqgpsS)
